@@ -5,6 +5,7 @@ Aplicación web instalable (PWA) para registrar jornadas, servicios, tarifas y g
 ## Incluye
 - Panel mensual con horas, importes, jornadas, media por jornada y distribución por servicio.
 - Registro manual de jornadas con validación de horas y tarifa histórica.
+- Servicios por horas o por importe fijo (por ejemplo, programación mensual de 150 €), sin sumar horas ficticias.
 - Cronómetro en directo: inicia una jornada, consulta el tiempo transcurrido y finaliza para guardarla. El estado se conserva si cierras o recargas la app.
 - Catálogo editable de servicios y tarifas.
 - Historial mensual con búsqueda, filtro, edición y eliminación.
@@ -20,6 +21,9 @@ Aplicación web instalable (PWA) para registrar jornadas, servicios, tarifas y g
 4. En iPhone: abre la URL en Safari → Compartir → Añadir a pantalla de inicio. En Android: menú del navegador → Instalar aplicación.
 
 El service worker requiere HTTPS (excepto `localhost`). La app guarda datos en el navegador sin conexión, pero la sincronización con Sheets necesita internet.
+
+
+> **URL de Apps Script preconfigurada:** esta versión ya incluye la URL que has facilitado. En la app, abre Configuración y pulsa **Conectar y sincronizar**. Revisa y autoriza la operación cuando aparezca la confirmación.
 
 ## B. Crear el backend de Google Sheets
 1. Crea un Google Sheet nuevo.
