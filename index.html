@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101311">
+  <meta name="description" content="Control horario mensual, servicios e informes de jornada.">
+
+  <title>HORAE · Control horario</title>
+
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="Horae inicio">
+        <span class="brand-mark">H</span>
+        <span>
+          <strong>HORAE</strong>
+          <small>CONTROL HORARIO</small>
+        </span>
+      </a>
+
+      <div class="sidebar-label">ESPACIO DE TRABAJO</div>
+
+      <button class="nav-item active" data-view="dashboard">
+        <span class="nav-icon">▦</span> Resumen
+      </button>
+      <button class="nav-item" data-view="records">
+        <span class="nav-icon">◷</span> Jornadas
+      </button>
+      <button class="nav-item" data-view="services">
+        <span class="nav-icon">◇</span> Servicios y tarifas
+      </button>
+      <button class="nav-item" data-view="reports">
+        <span class="nav-icon">▤</span> Informes
+      </button>
+
+      <div class="sidebar-bottom">
+        <div class="sync-card">
+          <span class="sync-dot" id="syncDot"></span>
+          <div>
+            <strong id="syncTitle">Modo local</strong>
+            <small id="syncText">Pendiente de conectar Sheets</small>
+          </div>
+        </div>
+
+        <button class="nav-item" data-view="settings">
+          <span class="nav-icon">⚙</span> Configuración
+        </button>
+
+        <p class="sidebar-foot">
+          HORAE <span>v1.0</span><br>
+          Tu tiempo, bajo control.
+        </p>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="mobile-brand">
+          <span class="brand-mark">H</span>
+          <strong>HORAE</strong>
+        </div>
+
+        <div class="breadcrumb">
+          <span>Espacio personal</span>
+          <b>/</b>
+          <strong id="pageName">Resumen</strong>
+        </div>
+
+        <div class="top-actions">
+          <span class="today-label" id="todayLabel"></span>
+          <button class="icon-button" id="installBtn" hidden title="Instalar aplicación">↓</button>
+          <button class="avatar" title="Perfil">R</button>
+        </div>
+      </header>
+
+      <!-- RESUMEN -->
+      <section class="view active" id="view-dashboard">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">PANEL DE CONTROL</p>
+            <h1>Tu tiempo. <span>En orden.</span></h1>
+            <p class="subheading">Controla tus jornadas, servicios e importes desde un solo lugar.</p>
+          </div>
+          <button class="btn btn-primary" id="newRecordTop">
+            <span>＋</span> Nueva jornada
+          </button>
+        </div>
+
+        <div class="month-toolbar">
+          <div>
+            <span class="section-kicker">PERIODO ACTIVO</span>
+            <div class="month-controls">
+              <button class="round-btn" id="prevMonth" aria-label="Mes anterior">‹</button>
+              <h2 id="monthTitle">Octubre 2026</h2>
+              <button class="round-btn" id="nextMonth" aria-label="Mes siguiente">›</button>
+            </div>
+          </div>
+          <button class="btn btn-secondary" id="exportMonth">↗ Exportar informe</button>
+        </div>
+
+        <section class="timer-panel panel" aria-label="Cronómetro de jornada">
+          <div class="timer-left">
+            <div class="timer-pulse" id="timerPulse"></div>
+            <div>
+              <p class="eyebrow">REGISTRO RÁPIDO</p>
+              <h3 id="timerTitle">¿Empezamos una jornada?</h3>
+              <p class="timer-description" id="timerDescription">
+                Inicia el cronómetro y guarda la jornada al terminar.
+              </p>
+            </div>
+          </div>
+
+          <div class="timer-controls">
+            <select id="timerService" aria-label="Servicio para el cronómetro"></select>
+            <strong class="timer-clock" id="timerClock">00:00:00</strong>
+            <button class="btn btn-primary" id="timerStart">▶ Iniciar</button>
+            <button class="btn btn-secondary" id="timerStop" hidden>■ Finalizar y guardar</button>
+          </div>
+        </section>
+
+        <div class="stats-grid">
+          <article class="stat-card">
+            <div class="stat-top">
+              <span>Horas trabajadas</span>
+              <span class="stat-icon">◷</span>
+            </div>
+            <div class="stat-value" id="statHours">0 h</div>
+            <div class="stat-foot">Tiempo registrado este mes</div>
+            <div class="mini-bars" aria-hidden="true">
+              <i class="bar-35"></i>
+              <i class="bar-58"></i>
+              <i class="bar-44"></i>
+              <i class="bar-70"></i>
+              <i class="bar-54"></i>
+              <i class="bar-86"></i>
+              <i class="bar-65"></i>
+              <i class="bar-100"></i>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-top">
+              <span>Importe estimado</span>
+              <span class="stat-icon green">€</span>
+            </div>
+            <div class="stat-value" id="statTotal">0,00 €</div>
+            <div class="stat-foot">Según servicios y tarifas</div>
+            <div class="stat-accent-line"></div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-top">
+              <span>Jornadas registradas</span>
+              <span class="stat-icon">▤</span>
+            </div>
+            <div class="stat-value" id="statDays">0</div>
+            <div class="stat-foot" id="statDaysFoot">Días con actividad este mes</div>
+            <div class="stat-accent-line muted"></div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-top">
+              <span>Media por jornada</span>
+              <span class="stat-icon">↗</span>
+            </div>
+            <div class="stat-value" id="statAverage">0,00 €</div>
+            <div class="stat-foot">Importe medio por día registrado</div>
+            <div class="stat-accent-line"></div>
+          </article>
+        </div>
+
+        <div class="content-grid">
+          <section class="panel recent-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">ACTIVIDAD</p>
+                <h3>Últimas jornadas</h3>
+              </div>
+              <button class="text-button" data-goto="records">Ver todas ↗</button>
+            </div>
+            <div id="recentRecords" class="record-list"></div>
+          </section>
+
+          <section class="panel breakdown-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">DISTRIBUCIÓN</p>
+                <h3>Por servicio</h3>
+              </div>
+              <span class="period-pill" id="breakdownPeriod">Este mes</span>
+            </div>
+            <div id="serviceBreakdown" class="breakdown-list"></div>
+            <div class="panel-note">
+              El importe se calcula con la tarifa por hora configurada para cada servicio.
+            </div>
+          </section>
+        </div>
+
+        <section class="panel quick-panel">
+          <div class="quick-copy">
+            <div class="quick-symbol">＋</div>
+            <div>
+              <h3>¿Has terminado tu jornada?</h3>
+              <p>Registra las horas ahora y deja el cierre de mes preparado.</p>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="quickAdd">
+            Registrar horas <span>→</span>
+          </button>
+        </section>
+      </section>
+
+      <!-- JORNADAS -->
+      <section class="view" id="view-records">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">REGISTRO DIARIO</p>
+            <h1>Jornadas</h1>
+            <p class="subheading">Añade, revisa y edita las horas de cada servicio.</p>
+          </div>
+          <button class="btn btn-primary" id="newRecordRecords">＋ Nueva jornada</button>
+        </div>
+
+        <div class="filter-row">
+          <div class="searchbox">
+            <span>⌕</span>
+            <input id="recordSearch" placeholder="Buscar por servicio o nota…" aria-label="Buscar jornadas">
+          </div>
+
+          <select id="serviceFilter" aria-label="Filtrar por servicio">
+            <option value="">Todos los servicios</option>
+          </select>
+
+          <span class="result-count" id="recordCount">0 registros</span>
+        </div>
+
+        <div class="panel table-panel">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>FECHA</th>
+                  <th>SERVICIO</th>
+                  <th>HORARIO</th>
+                  <th>DURACIÓN</th>
+                  <th>TARIFA</th>
+                  <th>IMPORTE</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="recordsTable"></tbody>
+            </table>
+          </div>
+
+          <div id="recordsEmpty" class="empty-state" hidden>
+            <div class="empty-icon">◷</div>
+            <h3>Aún no hay jornadas</h3>
+            <p>Cuando registres tus horas, aparecerán aquí.</p>
+            <button class="btn btn-primary" id="emptyAdd">Añadir primera jornada</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SERVICIOS -->
+      <section class="view" id="view-services">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">CONFIGURACIÓN DE ACTIVIDAD</p>
+            <h1>Servicios y tarifas</h1>
+            <p class="subheading">Define los conceptos que realizas y su precio por hora.</p>
+          </div>
+          <button class="btn btn-primary" id="newServiceBtn">＋ Nuevo servicio</button>
+        </div>
+
+        <div class="service-cards" id="serviceCards"></div>
+
+        <div class="info-banner">
+          <span>ⓘ</span>
+          <div>
+            <strong>Consejo</strong>
+            <p>
+              Si cambias una tarifa, las nuevas jornadas usarán el precio actualizado.
+              Los registros ya guardados conservan su tarifa histórica.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- INFORMES -->
+      <section class="view" id="view-reports">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">CIERRE MENSUAL</p>
+            <h1>Informes</h1>
+            <p class="subheading">Genera un resumen claro, listo para compartir con tu responsable.</p>
+          </div>
+        </div>
+
+        <div class="report-config panel">
+          ```html
+          <div class="report-period-fields">
+            <div>
+              <label for="reportMonth">Mes del informe</label>
+              <select id="reportMonth" required>
+                <option value="01">Enero</option>
+                <option value="02">Febrero</option>
+                <option value="03">Marzo</option>
+                <option value="04">Abril</option>
+                <option value="05">Mayo</option>
+                <option value="06">Junio</option>
+                <option value="07">Julio</option>
+                <option value="08">Agosto</option>
+                <option value="09">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+              </select>
+            </div>
+          
+            <div>
+              <label for="reportYear">Año del informe</label>
+              <select id="reportYear" required></select>
+            </div>
+          </div>
+          ```
+
+          <div>
+            <label for="reportName">Nombre del trabajador</label>
+            <input id="reportName" placeholder="Nombre y apellidos">
+          </div>
+
+          <div>
+            <label for="reportBoss">Responsable / empresa (opcional)</label>
+            <input id="reportBoss" placeholder="Nombre de empresa">
+          </div>
+
+          <button class="btn btn-primary" id="generateReport">Vista previa del informe ↗</button>
+        </div>
+
+        <div class="report-preview panel" id="reportPreview">
+          <div class="report-placeholder">
+            <div class="empty-icon">▤</div>
+            <h3>Tu informe mensual</h3>
+            <p>Selecciona el periodo y genera una vista previa antes de imprimir o guardar como PDF.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONFIGURACIÓN -->
+      <section class="view" id="view-settings">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">PREFERENCIAS</p>
+            <h1>Configuración</h1>
+            <p class="subheading">Personaliza tu espacio y conecta tu hoja de cálculo.</p>
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <section class="panel settings-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">DATOS PERSONALES</p>
+                <h3>Tu perfil</h3>
+              </div>
+            </div>
+
+            <label for="settingsName">Nombre para los informes</label>
+            <input id="settingsName" placeholder="Nombre y apellidos">
+
+            <label for="settingsCompany">Empresa / responsable</label>
+            <input id="settingsCompany" placeholder="Empresa o responsable">
+
+            <button class="btn btn-primary" id="saveProfile">Guardar perfil</button>
+          </section>
+
+          <section class="panel settings-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">SINCRONIZACIÓN</p>
+                <h3>Google Sheets</h3>
+              </div>
+              <span class="status-badge" id="connectionBadge">No conectado</span>
+            </div>
+
+            <p class="settings-help">
+              Pega la URL de la aplicación web publicada desde Google Apps Script.
+              La primera vez, autoriza los permisos que solicita Google.
+            </p>
+
+            <label for="scriptUrl">URL de Apps Script</label>
+            <input
+              id="scriptUrl"
+              type="url"
+              placeholder="https://script.google.com/macros/s/…/exec"
+            >
+
+            <div class="button-row">
+              <button class="btn btn-primary" id="connectBtn">Conectar y sincronizar</button>
+              <button class="btn btn-secondary" id="disconnectBtn">Desconectar</button>
+            </div>
+
+            <p class="microcopy">
+              Puedes usar la app en modo local antes de conectar Sheets.
+              Para sincronizar en varios dispositivos, conecta el backend.
+            </p>
+          </section>
+
+          <section class="panel settings-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">COPIA DE SEGURIDAD</p>
+                <h3>Tus datos</h3>
+              </div>
+            </div>
+
+            <p class="settings-help">
+              Descarga una copia de tus registros y servicios en formato JSON.
+              Podrás importarla en esta app en otro dispositivo.
+            </p>
+
+            <div class="button-row">
+              <button class="btn btn-secondary" id="csvBackupBtn">Exportar CSV</button>
+              <button class="btn btn-secondary" id="backupBtn">Descargar copia JSON</button>
+
+              <label class="btn btn-secondary file-button">
+                Importar copia
+                <input type="file" id="restoreInput" accept=".json,application/json" hidden>
+              </label>
+            </div>
+
+            <button class="danger-link" id="clearLocalBtn">
+              Borrar datos locales de este dispositivo
+            </button>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- NAVEGACIÓN MÓVIL -->
+  <nav class="mobile-nav" aria-label="Navegación móvil">
+    <button class="active" data-view="dashboard"><span>▦</span>Inicio</button>
+    <button data-view="records"><span>◷</span>Jornadas</button>
+    <button data-view="services"><span>◇</span>Servicios</button>
+    <button data-view="reports"><span>▤</span>Informes</button>
+  </nav>
+
+  <!-- DIÁLOGO: JORNADA -->
+  <dialog id="recordDialog" class="app-dialog">
+    <form id="recordForm">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">REGISTRO DE ACTIVIDAD</p>
+          <h2 id="recordDialogTitle">Nueva jornada</h2>
+        </div>
+        <button type="button" class="close-dialog" data-close="recordDialog" aria-label="Cerrar">×</button>
+      </div>
+
+      <input type="hidden" id="recordId">
+
+      <div class="form-grid">
+        <div class="field full">
+          <label for="recordService">Servicio</label>
+          <select id="recordService" required></select>
+        </div>
+
+        <div class="field">
+          <label for="recordDate">Fecha</label>
+          <input type="date" id="recordDate" required>
+        </div>
+
+        <div class="field">
+          <label for="recordRate">Tarifa por hora (€)</label>
+          <input type="number" id="recordRate" min="0" step="0.01" required>
+        </div>
+
+        <div class="field">
+          <label for="recordStart">Hora de inicio</label>
+          <input type="time" id="recordStart" required>
+        </div>
+
+        <div class="field">
+          <label for="recordEnd">Hora de fin</label>
+          <input type="time" id="recordEnd" required>
+        </div>
+
+        <div class="field full">
+          <label for="recordNotes">Notas (opcional)</label>
+          <input id="recordNotes" maxlength="180" placeholder="Ej. turno de tarde, sustitución…">
+        </div>
+      </div>
+
+      <div class="duration-preview">
+        <div>
+          <span>Duración estimada</span>
+          <strong id="durationPreview">3 h 00 min</strong>
+        </div>
+        <div>
+          <span>Importe estimado</span>
+          <strong id="amountPreview">36,00 €</strong>
+        </div>
+      </div>
+
+      <p class="form-error" id="recordError" role="alert"></p>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-secondary" data-close="recordDialog">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar jornada</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- DIÁLOGO: SERVICIO -->
+  <dialog id="serviceDialog" class="app-dialog small-dialog">
+    <form id="serviceForm">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">CATÁLOGO</p>
+          <h2 id="serviceDialogTitle">Nuevo servicio</h2>
+        </div>
+        <button type="button" class="close-dialog" data-close="serviceDialog" aria-label="Cerrar">×</button>
+      </div>
+
+      <input type="hidden" id="serviceId">
+
+      <div class="field">
+        <label for="serviceName">Nombre del servicio</label>
+        <input id="serviceName" required maxlength="70" placeholder="Ej. Entrenamiento personal">
+      </div>
+
+      <div class="field">
+        <label for="serviceRate">Tarifa por hora (€)</label>
+        <input type="number" id="serviceRate" min="0" step="0.01" required value="12">
+      </div>
+
+      <div class="field">
+        <label for="serviceColor">Color identificativo</label>
+        <select id="serviceColor">
+          <option value="green">Verde</option>
+          <option value="blue">Azul</option>
+          <option value="purple">Morado</option>
+          <option value="orange">Naranja</option>
+        </select>
+      </div>
+
+      <p class="form-error" id="serviceError" role="alert"></p>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-secondary" data-close="serviceDialog">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar servicio</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
+```
