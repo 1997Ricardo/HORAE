@@ -3,7 +3,7 @@
   const $ = (s, root = document) => root.querySelector(s);
   const $$ = (s, root = document) => [...root.querySelectorAll(s)];
   const STORE_KEY = "horae.v1";
-  const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYmRmttQiamEbZZ_F4NDUK0sTm3-m_MciP-913T8-b59nI3rSiM6hBno3QrjgzGpDT/exec";
+  const DEFAULT_SCRIPT_URL = "";
   const DEFAULT_SERVICES = [
     {id:"svc-responsable",name:"Responsable",type:"hourly",rate:12,color:"green",active:true},
     {id:"svc-manana",name:"Mañana",type:"hourly",rate:12,color:"blue",active:true}
