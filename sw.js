@@ -38,10 +38,10 @@ self.addEventListener("fetch", event => {
   // Network-first keeps installed devices up to date; cached assets remain available offline.
   event.respondWith(
     fetch(request)
-      .then(response => {
+      .then(async response => {
         if (response && response.ok && response.type === "basic") {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, response.clone());
         }
         return response;
       })
