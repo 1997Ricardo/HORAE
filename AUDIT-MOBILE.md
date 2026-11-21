@@ -74,7 +74,7 @@ Se han mejorado los objetivos táctiles y los formularios móviles. Queda pendie
 - [ ] Confirmar que un servicio de importe fijo no ofrece cronómetro.
 - [ ] Generar un informe válido y probar un periodo inválido.
 - [ ] Exportar CSV y JSON; restaurar la copia JSON en un dispositivo de prueba.
-- [ ] Activar Sheets, desconectar y verificar que no se envían más cambios.
+- [ ] Configurar URL y token; comprobar que un token incorrecto es rechazado.\n- [ ] Activar Sheets, desconectar y verificar que no se envían más cambios.\n- [ ] Conectar dos dispositivos, sincronizar desde uno y verificar que el otro recibe conflicto de revisión.\n- [ ] Descargar desde Sheets en el segundo dispositivo y comprobar que se actualiza la revisión.
 - [ ] Activar modo avión, navegar por la app y volver a conectar.
 - [ ] Verificar que una actualización del service worker entrega la versión nueva.
 - [ ] Probar pantallas de 320, 360, 390 y 430 px de ancho.
