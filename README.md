@@ -23,7 +23,7 @@ Aplicación web instalable (PWA) para registrar jornadas, servicios, tarifas y g
 El service worker requiere HTTPS (excepto `localhost`). La app guarda datos en el navegador sin conexión, pero la sincronización con Sheets necesita internet.
 
 
-> **URL de Apps Script preconfigurada:** esta versión ya incluye la URL que has facilitado. En la app, abre Configuración y pulsa **Conectar y sincronizar**. Revisa y autoriza la operación cuando aparezca la confirmación.
+> **Endpoint no preconfigurado:** por seguridad, la URL de Apps Script se introduce manualmente en Configuración después de comprobar el backend. No se incluye una URL de despliegue en el código público.
 
 ## B. Sincronización con Google Sheets
 
