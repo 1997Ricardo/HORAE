@@ -28,3 +28,60 @@
 
 /* Fixed-fee services */
 [hidden]{display:none!important}
+
+
+/* Mobile-first usability and accessible touch targets */
+:root{--tap-size:44px}
+button,a,input,select,textarea{touch-action:manipulation}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+@media(max-width:760px){
+  body{padding-top:env(safe-area-inset-top)}
+  .main-content{padding-bottom:calc(104px + env(safe-area-inset-bottom))}
+  .mobile-nav{padding-bottom:max(8px,env(safe-area-inset-bottom));min-height:calc(66px + env(safe-area-inset-bottom))}
+  .mobile-nav button{min-height:52px;font-size:10px}
+  .mobile-nav button span{font-size:21px}
+  .btn,.round-btn,.icon-button,.close-dialog,.small-icon-btn{min-height:var(--tap-size)}
+  .round-btn{width:var(--tap-size);height:var(--tap-size);font-size:25px}
+  .small-icon-btn{width:var(--tap-size);height:var(--tap-size);border-radius:10px}
+  .page-heading>.btn{min-width:var(--tap-size);min-height:var(--tap-size)}
+  .filter-row select,.searchbox{min-height:var(--tap-size)}
+  .table-panel{overflow:visible}
+  .table-panel .table-wrap{overflow:visible}
+  .table-panel table{display:block;min-width:0;width:100%;white-space:normal}
+  .table-panel thead{display:none}
+  .table-panel tbody{display:grid;gap:11px;padding:12px}
+  .table-panel tbody tr{display:grid;grid-template-columns:1fr 1fr;background:#111612;border:1px solid var(--border);border-radius:13px;overflow:hidden}
+  .table-panel tbody td{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;min-width:0;padding:11px 12px;border-top:1px solid #ffffff0a;text-align:right;font-size:11px;white-space:normal;overflow-wrap:anywhere}
+  .table-panel tbody td::before{content:attr(data-label);color:var(--muted);font-size:10px;font-weight:600;text-align:left;flex:0 0 auto}
+  .table-panel tbody td:nth-child(2),.table-panel tbody td:last-child{grid-column:1/-1}
+  .table-panel tbody td:nth-child(2){display:block;text-align:left}
+  .table-panel tbody td:nth-child(2)::before{display:block;margin-bottom:7px}
+  .table-panel tbody td:last-child{align-items:center}
+  .table-panel tbody td:last-child::before{align-self:center}
+  .table-panel .row-actions{gap:8px}
+  .app-dialog{width:calc(100% - 16px);max-width:560px;max-height:calc(100dvh - 16px - env(safe-area-inset-top));margin:auto 8px 8px;padding:20px 17px;border-radius:20px;overscroll-behavior:contain}
+  .app-dialog form{padding-bottom:env(safe-area-inset-bottom)}
+  .dialog-head{position:sticky;top:-20px;background:#151a16;padding:8px 0 14px;margin-bottom:15px;z-index:2}
+  .dialog-actions{position:sticky;bottom:calc(-1 * env(safe-area-inset-bottom));background:#151a16;padding:12px 0 max(8px,env(safe-area-inset-bottom));}
+  .dialog-actions .btn{flex:1}
+  .form-grid{grid-template-columns:1fr}
+  .field.full{grid-column:auto}
+  .field{margin-bottom:10px}
+  input,select{font-size:16px;min-height:48px}
+  .settings-panel .btn,.button-row .btn,.button-row .file-button{min-height:44px}
+  .report-document{overflow-wrap:anywhere}
+}
+@media(max-width:390px){
+  .mobile-nav{padding-left:3px;padding-right:3px}
+  .mobile-nav button{font-size:9px}
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stat-card{min-width:0}
+  .stat-value{font-size:clamp(18px,5.8vw,23px);overflow-wrap:anywhere}
+  .month-toolbar{align-items:flex-start}
+  .month-toolbar>.btn{white-space:normal;max-width:112px;min-height:44px}
+  .dialog-actions{flex-direction:column-reverse}
+  .dialog-actions .btn{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
