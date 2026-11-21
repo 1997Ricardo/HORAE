@@ -146,7 +146,7 @@
   }
   function showReport(){const key=($("#reportMonth").value||activeMonth).trim();if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(key)){toast("Introduce un mes válido con formato AAAA-MM.");$("#reportMonth").focus();return;}$("#reportPreview").innerHTML=`<div class="report-actions"><button class="btn btn-primary" id="printReport">Imprimir / Guardar como PDF ↗</button></div>`+makeReport(key,$("#reportName").value.trim()||state.profile.name,$("#reportBoss").value.trim()||state.profile.company);$("#printReport")?.addEventListener("click",()=>window.print());$("#reportPreview").scrollIntoView({behavior:"smooth",block:"start"});}
   function exportJSON(){const blob=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),records:state.records,services:state.services,profile:state.profile,timer:state.timer||null},null,2)],{type:"application/json"});downloadBlob(blob,`horae-copia-${isoDate()}.json`);}
-  function downloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
+  function downloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
 
   let timerTick = null;
   function elapsedTimerMs(){return state.timer ? Math.max(0, Date.now()-Number(state.timer.startedAt)) : 0;}
