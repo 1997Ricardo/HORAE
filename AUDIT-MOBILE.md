@@ -34,9 +34,19 @@ La revisión cubrió la estructura del repositorio, la interfaz, el estado local
 
 ### 1. Google Sheets y backend
 
-El repositorio contiene el cliente, pero no el código fuente del backend de Apps Script. Por tanto, no es posible auditar su autenticación, autorización, validación, almacenamiento, protección frente a escrituras concurrentes ni tratamiento de errores. La URL de Apps Script no es autenticación. La URL que estuvo incluida en el código anterior ya pudo quedar expuesta en el historial público de Git; si ese despliegue sigue activo, conviene crear una nueva implementación segura y desactivar la anterior.
+Se ha incorporado `Code.gs` al repositorio y se ha endurecido el contrato de sincronización:
 
-La sincronización actual transmite un snapshot completo de registros, servicios y perfil. No implementa resolución de conflictos ni fusión segura de cambios simultáneos entre dispositivos. Antes de usarla como fuente principal de datos hay que revisar el Apps Script desplegado.
+- Token compartido almacenado en Script Properties, generado/rotado con `generateApiToken()`.
+- Validación de token en cada operación de lectura y escritura.
+- Validación de tamaño de petición, arrays, identificadores duplicados, fechas, horas, textos y números.
+- Neutralización de cadenas que podrían interpretarse como fórmulas en Google Sheets.
+- Control optimista de revisiones bajo `LockService`: una sincronización con una revisión obsoleta se rechaza.
+- Acción `pull` para descargar el estado remoto antes de sustituir los datos locales.
+- El token se almacena en el navegador, no se exporta en copias JSON y debe configurarse manualmente en cada dispositivo.
+
+Limitaciones que siguen vigentes: el token es un secreto compartido, no autenticación individual; un dispositivo comprometido puede exponerlo. La sincronización transmite snapshots completos, no hace merge de cambios y las eliminaciones requieren descargar/actualizar el snapshot. El servicio Apps Script no ofrece aquí una capa multiusuario ni permisos por usuario. Para uso con información sensible o varios usuarios, se recomienda una API con autenticación real.
+
+La URL de Apps Script estuvo incluida en una versión anterior del código público. Eliminarla de la versión actual no la elimina del historial Git: rota el token, crea una implementación nueva y desactiva la anterior si sigue activa.
 
 ### 2. Persistencia y recuperación
 
