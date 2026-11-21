@@ -30,7 +30,7 @@
   }
   function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify({records:state.records,services:state.services,profile:state.profile,scriptUrl:state.scriptUrl,timer:state.timer||null,connected:Boolean(state.connected)}));return true;}catch(e){console.error("No se pudieron guardar los datos locales",e);if($("#toast"))toast("No se han podido guardar los cambios. Libera espacio o descarga una copia.");return false;}}
   function serviceFor(id){return state.services.find(s=>s.id===id)||{name:"Servicio eliminado",type:"hourly",rate:0,fixedAmount:0,color:"green"};}
-  function isFixedRecord(r){return r?.billingType==="fixed"||r?.type==="fixed"||serviceFor(r?.serviceId).type==="fixed";}
+  function isFixedRecord(r){if(r?.billingType)return r.billingType==="fixed";if(r?.type)return r.type==="fixed";return serviceFor(r?.serviceId).type==="fixed";}
   function durationMinutes(start,end){if(!start||!end)return 0;const [sh,sm]=start.split(":").map(Number),[eh,em]=end.split(":").map(Number);let diff=eh*60+em-(sh*60+sm);if(diff<=0)diff+=1440;return diff;}
   function recordMinutes(r){return Number.isFinite(r.minutes)?r.minutes:durationMinutes(r.start,r.end);}
   function recordAmount(r){
