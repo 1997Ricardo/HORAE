@@ -62,18 +62,18 @@
     $$('[data-edit]').forEach(b=>b.addEventListener("click",()=>openRecord(b.dataset.edit)));$$('[data-delete]').forEach(b=>b.addEventListener("click",()=>deleteRecord(b.dataset.delete)));
   }
   function renderServiceOptions(){
-    const opts=state.services.filter(s=>s.active!==false).map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("");
+    const opts=state.services.filter(s=>s.active!==false).map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("");
     $("#recordService").innerHTML=opts||'<option value="">Crea primero un servicio</option>';
     const timerSelect=$("#timerService"), previous=timerSelect.value;
     timerSelect.innerHTML=opts||'<option value="">Crea primero un servicio</option>';
     if(state.timer)timerSelect.value=state.timer.serviceId;else if(previous&&state.services.some(s=>s.id===previous))timerSelect.value=previous;
   }
   function renderFilters(){
-    const old=$("#serviceFilter").value;$("#serviceFilter").innerHTML='<option value="">Todos los servicios</option>'+state.services.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("");$("#serviceFilter").value=old;
+    const old=$("#serviceFilter").value;$("#serviceFilter").innerHTML='<option value="">Todos los servicios</option>'+state.services.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("");$("#serviceFilter").value=old;
   }
   function renderServices(){
     const root=$("#serviceCards");root.innerHTML="";
-    state.services.forEach(s=>{const count=state.records.filter(r=>r.serviceId===s.id).length,card=document.createElement("article");card.className="service-card";card.innerHTML=`<div class="service-card-top"><div class="service-emblem ${s.color}">${s.color==="blue"?"◈":s.color==="purple"?"◇":s.color==="orange"?"◉":"✳"}</div><span class="period-pill">${count} ${count===1?"registro":"registros"}</span></div><h3>${esc(s.name)}</h3><div class="service-rate">${fmtMoney(s.type==="fixed" ? (s.fixedAmount||0) : (s.rate||0))} <small>${s.type==="fixed" ? "/ servicio" : "/ hora"}</small></div><div class="service-meta">${s.type==="fixed" ? "Importe fijo por cada registro" : "Tarifa aplicada a los nuevos registros"}</div><div class="service-card-actions"><button class="btn btn-secondary" data-service-edit="${s.id}">Editar</button><button class="btn btn-secondary" data-service-delete="${s.id}">Eliminar</button></div>`;root.appendChild(card);});
+    state.services.forEach(s=>{const count=state.records.filter(r=>r.serviceId===s.id).length,card=document.createElement("article");card.className="service-card";card.innerHTML=`<div class="service-card-top"><div class="service-emblem ${esc(s.color)}">${s.color==="blue"?"◈":s.color==="purple"?"◇":s.color==="orange"?"◉":"✳"}</div><span class="period-pill">${count} ${count===1?"registro":"registros"}</span></div><h3>${esc(s.name)}</h3><div class="service-rate">${fmtMoney(s.type==="fixed" ? (s.fixedAmount||0) : (s.rate||0))} <small>${s.type==="fixed" ? "/ servicio" : "/ hora"}</small></div><div class="service-meta">${s.type==="fixed" ? "Importe fijo por cada registro" : "Tarifa aplicada a los nuevos registros"}</div><div class="service-card-actions"><button class="btn btn-secondary" data-service-edit="${esc(s.id)}">Editar</button><button class="btn btn-secondary" data-service-delete="${esc(s.id)}">Eliminar</button></div>`;root.appendChild(card);});
     if(!state.services.length)root.innerHTML='<div class="empty-state"><h3>No hay servicios</h3><p>Añade un servicio para empezar.</p></div>';
     $$("[data-service-edit]").forEach(b=>b.addEventListener("click",()=>openService(b.dataset.serviceEdit)));$$("[data-service-delete]").forEach(b=>b.addEventListener("click",()=>deleteService(b.dataset.serviceDelete)));
   }
