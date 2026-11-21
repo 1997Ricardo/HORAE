@@ -173,7 +173,7 @@
   function stopTimer(){
     if(!state.timer)return;
     const timer=state.timer;
-    const elapsed=Math.max(1,Math.round((endDate.getTime()-Number(timer.startedAt))/60000));
+    const elapsed=Math.max(1,Math.round((Date.now()-Number(timer.startedAt))/60000));
     if(elapsed>24*60){toast("La jornada supera 24 horas. Revisa el registro manualmente.");return;}
     const startMinutes=Number(timer.start.slice(0,2))*60+Number(timer.start.slice(3,5));
     const endMinutes=(startMinutes+elapsed)%1440;
