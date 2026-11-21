@@ -19,7 +19,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check app.js
-          node --check sw.js
+          node --check sw.js\n          node --check < Code.gs
       - name: Validate web app manifest
         run: node -e "JSON.parse(require('node:fs').readFileSync('manifest.webmanifest', 'utf8'))"
       - name: Verify required PWA files
