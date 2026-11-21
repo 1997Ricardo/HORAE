@@ -24,11 +24,11 @@
   function loadState(){
     try {
       const raw=localStorage.getItem(STORE_KEY);
-      if(raw){const parsed=JSON.parse(raw);return {records:Array.isArray(parsed.records)?parsed.records:[],services:Array.isArray(parsed.services)?parsed.services:DEFAULT_SERVICES,profile:parsed.profile||{name:"",company:""},scriptUrl:parsed.scriptUrl||DEFAULT_SCRIPT_URL,timer:parsed.timer||null,connected:Boolean(parsed.connected)};}
+      if(raw){const parsed=JSON.parse(raw);return {records:Array.isArray(parsed.records)?parsed.records:[],services:Array.isArray(parsed.services)?parsed.services:DEFAULT_SERVICES,profile:parsed.profile||{name:"",company:""},scriptUrl:parsed.scriptUrl||DEFAULT_SCRIPT_URL,apiToken:parsed.apiToken||"",syncRevision:Number.isInteger(parsed.syncRevision)?parsed.syncRevision:null,timer:parsed.timer||null,connected:Boolean(parsed.connected)};}
     } catch(e){console.warn("No se pudieron leer los datos locales",e);}
-    return {records:[],services:DEFAULT_SERVICES.map(x=>({...x})),profile:{name:"",company:""},scriptUrl:DEFAULT_SCRIPT_URL,timer:null,connected:false};
+    return {records:[],services:DEFAULT_SERVICES.map(x=>({...x})),profile:{name:"",company:""},scriptUrl:DEFAULT_SCRIPT_URL,apiToken:"",syncRevision:null,timer:null,connected:false};
   }
-  function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify({records:state.records,services:state.services,profile:state.profile,scriptUrl:state.scriptUrl,timer:state.timer||null,connected:Boolean(state.connected)}));return true;}catch(e){console.error("No se pudieron guardar los datos locales",e);if($("#toast"))toast("No se han podido guardar los cambios. Libera espacio o descarga una copia.");return false;}}
+  function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify({records:state.records,services:state.services,profile:state.profile,scriptUrl:state.scriptUrl,apiToken:state.apiToken||"",syncRevision:Number.isInteger(state.syncRevision)?state.syncRevision:null,timer:state.timer||null,connected:Boolean(state.connected)}));return true;}catch(e){console.error("No se pudieron guardar los datos locales",e);if($("#toast"))toast("No se han podido guardar los cambios. Libera espacio o descarga una copia.");return false;}}
   function serviceFor(id){return state.services.find(s=>s.id===id)||{name:"Servicio eliminado",type:"hourly",rate:0,fixedAmount:0,color:"green"};}
   function isFixedRecord(r){if(r?.billingType)return r.billingType==="fixed";if(r?.type)return r.type==="fixed";return serviceFor(r?.serviceId).type==="fixed";}
   function durationMinutes(start,end){if(!start||!end)return 0;const [sh,sm]=start.split(":").map(Number),[eh,em]=end.split(":").map(Number);let diff=eh*60+em-(sh*60+sm);if(diff<=0)diff+=1440;return diff;}
@@ -43,7 +43,7 @@
   function toast(message){const el=$("#toast");el.textContent=message;el.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),2800);}
   function updateConnectionUI(connected=state.connected){state.connected=connected;$("#syncDot").classList.toggle("connected",connected);$("#syncTitle").textContent=connected?"Google Sheets conectado":"Modo local";$("#syncText").textContent=connected?"Sincronización disponible":"Pendiente de conectar Sheets";$("#connectionBadge").textContent=connected?"Conectado":"No conectado";$("#connectionBadge").classList.toggle("connected",connected);}
   function setView(view){$$(".view").forEach(v=>v.classList.toggle("active",v.id===`view-${view}`));document.querySelectorAll("[data-view]").forEach(b=>{const active=b.dataset.view===view;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});$("#pageName").textContent=({dashboard:"Resumen",records:"Jornadas",services:"Servicios y tarifas",reports:"Informes",settings:"Configuración"})[view]||"Resumen";if(view==="reports"){if(!$("#reportMonth").value)$("#reportMonth").value=activeMonth;}if(view==="records")renderRecords();if(view==="services")renderServices();window.scrollTo({top:0,behavior:"smooth"});}
-  function renderAll(){renderDashboard();renderRecords();renderServices();renderServiceOptions();renderFilters();renderTimer();updateConnectionUI(state.connected);$("#monthTitle").textContent=monthName(activeMonth);$("#todayLabel").textContent=new Intl.DateTimeFormat("es-ES",{weekday:"short",day:"numeric",month:"short"}).format(new Date());$("#reportMonth").value=activeMonth;$("#settingsName").value=state.profile.name||"";$("#settingsCompany").value=state.profile.company||"";$("#reportName").value=state.profile.name||"";$("#reportBoss").value=state.profile.company||"";$("#scriptUrl").value=state.scriptUrl||"";}
+  function renderAll(){renderDashboard();renderRecords();renderServices();renderServiceOptions();renderFilters();renderTimer();updateConnectionUI(state.connected);$("#monthTitle").textContent=monthName(activeMonth);$("#todayLabel").textContent=new Intl.DateTimeFormat("es-ES",{weekday:"short",day:"numeric",month:"short"}).format(new Date());$("#reportMonth").value=activeMonth;$("#settingsName").value=state.profile.name||"";$("#settingsCompany").value=state.profile.company||"";$("#reportName").value=state.profile.name||"";$("#reportBoss").value=state.profile.company||"";$("#scriptUrl").value=state.scriptUrl||"";$("#apiToken").value=state.apiToken||"";}
   function renderDashboard(){
     const list=recordsForMonth(), mins=sumMinutes(list), total=sumAmount(list), days=new Set(list.map(r=>r.date)).size;
     $("#statHours").textContent=(mins/60).toLocaleString("es-ES",{maximumFractionDigits:1})+" h";$("#statTotal").textContent=fmtMoney(total);$("#statDays").textContent=days;$("#statDaysFoot").textContent=`${days} ${days===1?"día":"días"} con actividad este mes`;$("#statAverage").textContent=fmtMoney(days?total/days:0);
@@ -120,9 +120,9 @@
   function esc(str){return String(str??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
   async function api(action,payload={}){
     if(!state.scriptUrl)throw new Error("Añade primero la URL de Apps Script en Configuración.");
-    const url=state.scriptUrl.trim();const response=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,...payload})});
+    const url=state.scriptUrl.trim();if(!state.apiToken)throw new Error("Introduce el token de seguridad de HORAE.");const response=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,token:state.apiToken,...payload})});
     if(!response.ok)throw new Error(`Error de conexión (${response.status}).`);
-    const data=await response.json();if(!data.ok)throw new Error(data.error||"Apps Script ha devuelto un error.");return data;
+    const data=await response.json();if(!data.ok){const error=new Error(data.error||"Apps Script ha devuelto un error.");error.code=data.code||"SERVER_ERROR";throw error;}return data;
   }
   let syncTimeout=null;
   function queueSync(){if(!state.connected||!state.scriptUrl)return;clearTimeout(syncTimeout);syncTimeout=setTimeout(()=>syncToCloud(false),900);}
@@ -130,11 +130,25 @@
     if(!state.scriptUrl){if(showMessage)toast("Configura la URL de Apps Script primero.");return;}
     const btn=$("#connectBtn");btn.disabled=true;btn.textContent="Sincronizando…";
     try{
-      const result=await api("sync",{data:{records:state.records,services:state.services,profile:state.profile}});
-      if(result.data){state.records=Array.isArray(result.data.records)?result.data.records:state.records;state.services=Array.isArray(result.data.services)&&result.data.services.length?result.data.services:state.services;state.profile=result.data.profile||state.profile;persist();}
+      const result=await api("sync",{data:{records:state.records,services:state.services,profile:state.profile,expectedRevision:Number.isInteger(state.syncRevision)?state.syncRevision:0}});
+      if(result.data){state.records=Array.isArray(result.data.records)?result.data.records:state.records;state.services=Array.isArray(result.data.services)?result.data.services:state.services;state.profile=result.data.profile||state.profile;state.syncRevision=Number.isInteger(result.data.revision)?result.data.revision:state.syncRevision;persist();}
       state.connected=true;persist();renderAll();if(showMessage)toast("Google Sheets sincronizado correctamente.");
-    }catch(e){state.connected=false;persist();updateConnectionUI(false);if(showMessage)toast(e.message||"No se pudo conectar.");console.error(e);}
+    }catch(e){state.connected=false;persist();updateConnectionUI(false);if(showMessage)toast(e.code==="CONFLICT"?"Hay cambios más recientes en Sheets. Descarga los datos remotos antes de volver a sincronizar.":(e.message||"No se pudo conectar."));console.error(e);}
     finally{btn.disabled=false;btn.textContent="Conectar y sincronizar";}
+  }
+  async function pullFromCloud(){
+    if(!state.scriptUrl||!state.apiToken){toast("Configura la URL y el token de seguridad primero.");return;}
+    if(!confirm("Descargar desde Google Sheets reemplazará los datos locales de este dispositivo. Descarga antes una copia JSON si tienes cambios que quieras conservar. ¿Continuar?"))return;
+    const btn=$("#pullBtn");btn.disabled=true;btn.textContent="Descargando…";
+    try{
+      const result=await api("pull");
+      state.records=Array.isArray(result.data.records)?result.data.records:[];
+      state.services=Array.isArray(result.data.services)?result.data.services:[];
+      state.profile=result.data.profile||{name:"",company:""};
+      state.syncRevision=Number.isInteger(result.data.revision)?result.data.revision:0;
+      state.connected=true;persist();renderAll();toast("Datos de Google Sheets descargados.");
+    }catch(e){toast(e.message||"No se pudieron descargar los datos.");console.error(e);}
+    finally{btn.disabled=false;btn.textContent="Descargar desde Sheets";}
   }
   function makeReport(key,name,company){
     const list=recordsForMonth(key).slice().sort((a,b)=>a.date.localeCompare(b.date)||(a.start||"").localeCompare(b.start||""));
@@ -219,11 +233,11 @@
     $("#recordSearch").addEventListener("input",renderRecords);$("#serviceFilter").addEventListener("change",renderRecords);
     $("#exportMonth").addEventListener("click",()=>{setView("reports");$("#reportMonth").value=activeMonth;showReport();});$("#generateReport").addEventListener("click",showReport);
     $("#saveProfile").addEventListener("click",()=>{state.profile={name:$("#settingsName").value.trim(),company:$("#settingsCompany").value.trim()};persist();$("#reportName").value=state.profile.name;$("#reportBoss").value=state.profile.company;queueSync();toast("Perfil guardado");});
-    $("#connectBtn").addEventListener("click",async()=>{state.scriptUrl=$("#scriptUrl").value.trim();persist();if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(state.scriptUrl)){toast("Pega una URL válida de una aplicación web de Apps Script.");return;}if(!confirm("Vas a iniciar una sincronización desde este dispositivo. Descarga antes una copia de seguridad y comprueba que la hoja de destino es la correcta. La sincronización puede sustituir datos remotos según la configuración del Apps Script. ¿Continuar?"))return;await syncToCloud(true);});
-    $("#disconnectBtn").addEventListener("click",()=>{clearTimeout(syncTimeout);state.connected=false;persist();updateConnectionUI(false);toast("Sincronización pausada. Tus datos locales siguen guardados.");});
+    $("#connectBtn").addEventListener("click",async()=>{state.scriptUrl=$("#scriptUrl").value.trim();state.apiToken=$("#apiToken").value.trim();persist();if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(state.scriptUrl)){toast("Pega una URL válida de una aplicación web de Apps Script.");return;}if(!confirm("Vas a iniciar una sincronización desde este dispositivo. Descarga antes una copia de seguridad y comprueba que la hoja de destino es la correcta. La sincronización puede sustituir datos remotos según la configuración del Apps Script. ¿Continuar?"))return;await syncToCloud(true);});
+    $("#disconnectBtn").addEventListener("click",()=>{clearTimeout(syncTimeout);state.connected=false;persist();updateConnectionUI(false);toast("Sincronización pausada. Tus datos locales siguen guardados.");});$("#pullBtn").addEventListener("click",pullFromCloud);
     $("#backupBtn").addEventListener("click",exportJSON);
-    $("#restoreInput").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.records)||!Array.isArray(data.services))throw new Error("Formato no válido");if(!confirm("Importar la copia reemplazará los registros, servicios y perfil locales actuales. ¿Continuar?"))return;state.records=data.records;state.services=data.services;state.profile=data.profile||{name:"",company:""};state.timer=data.timer||null;persist();renderAll();queueSync();toast("Copia importada correctamente");}catch(err){toast("No se ha podido importar la copia JSON.");}finally{e.target.value="";}});
-    $("#clearLocalBtn").addEventListener("click",()=>{if(!confirm("Esto eliminará los datos guardados en este dispositivo. ¿Has descargado una copia de seguridad?"))return;localStorage.removeItem(STORE_KEY);state={records:[],services:DEFAULT_SERVICES.map(x=>({...x})),profile:{name:"",company:""},scriptUrl:"",connected:false};persist();renderAll();toast("Datos locales eliminados");});
+    $("#restoreInput").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.records)||!Array.isArray(data.services))throw new Error("Formato no válido");if(!confirm("Importar la copia reemplazará los registros, servicios y perfil locales actuales. ¿Continuar?"))return;state.records=data.records;state.services=data.services;state.profile=data.profile||{name:"",company:""};state.timer=data.timer||null;state.syncRevision=null;state.connected=false;persist();renderAll();toast("Copia importada correctamente");}catch(err){toast("No se ha podido importar la copia JSON.");}finally{e.target.value="";}});
+    $("#clearLocalBtn").addEventListener("click",()=>{if(!confirm("Esto eliminará los datos guardados en este dispositivo. ¿Has descargado una copia de seguridad?"))return;localStorage.removeItem(STORE_KEY);state={records:[],services:DEFAULT_SERVICES.map(x=>({...x})),profile:{name:"",company:""},scriptUrl:"",apiToken:"",syncRevision:null,connected:false};persist();renderAll();toast("Datos locales eliminados");});
     $("#installBtn").addEventListener("click",async()=>{if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;$("#installBtn").hidden=true;});
     window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;$("#installBtn").hidden=false;});
     window.addEventListener("online",()=>{if(state.connected&&state.scriptUrl)syncToCloud(false);});window.addEventListener("offline",()=>toast("Sin conexión. Los datos locales siguen disponibles."));
