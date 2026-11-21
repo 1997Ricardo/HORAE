@@ -23,7 +23,11 @@ Aplicación web instalable (PWA) para registrar jornadas, servicios, tarifas y g
 El service worker requiere HTTPS (excepto `localhost`). La app guarda datos en el navegador sin conexión, pero la sincronización con Sheets necesita internet.
 
 
-> **Endpoint no preconfigurado:** por seguridad, la URL de Apps Script se introduce manualmente en Configuración después de comprobar el backend. No se incluye una URL de despliegue en el código público.
+> **Endpoint preconfigurado:** HORAE incluye la URL de la implementación actual de Apps Script para facilitar la conexión. El token privado sigue introduciéndose manualmente en Configuración y nunca se incluye en el repositorio.
+
+```text
+https://script.google.com/macros/s/AKfycbzrs-gDOXqePw-y0if3YA0sMMzIpEkbWoxzmz-NFZcJyrcZGAY3DFJrQZJR9Rc2YoNg/exec
+```
 
 ## B. Sincronización segura con Google Sheets
 
