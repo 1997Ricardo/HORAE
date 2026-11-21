@@ -26,7 +26,8 @@ La revisión cubrió la estructura del repositorio, la interfaz, el estado local
 - Se amplían las áreas táctiles, se adaptan formularios y diálogos al móvil y se respetan las áreas seguras del dispositivo.
 - Se añaden metadatos de instalación móvil y color de tema.
 - El service worker usa una estrategia network-first con fallback offline y solo elimina cachés antiguas propias de HORAE.
-- Se corrige la documentación de Google Sheets: el repositorio no contiene `Code.gs`.\n- Se elimina la URL de despliegue de Apps Script del código fuente público; debe introducirse manualmente en Configuración.
+- Se corrige la documentación de Google Sheets: el repositorio no contiene `Code.gs`.
+- Se elimina la URL de despliegue de Apps Script del código fuente público; debe introducirse manualmente en Configuración.
 - Se elimina `.DS_Store` y se añade `.gitignore`.
 
 ## Hallazgos pendientes / límites actuales
