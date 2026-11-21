@@ -3,7 +3,7 @@
   const $ = (s, root = document) => root.querySelector(s);
   const $$ = (s, root = document) => [...root.querySelectorAll(s)];
   const STORE_KEY = "horae.v1";
-  const DEFAULT_SCRIPT_URL = "";
+  const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrs-gDOXqePw-y0if3YA0sMMzIpEkbWoxzmz-NFZcJyrcZGAY3DFJrQZJR9Rc2YoNg/exec";
   const DEFAULT_SERVICES = [
     {id:"svc-responsable",name:"Responsable",type:"hourly",rate:12,color:"green",active:true},
     {id:"svc-manana",name:"Mañana",type:"hourly",rate:12,color:"blue",active:true}
@@ -24,7 +24,7 @@
   function loadState(){
     try {
       const raw=localStorage.getItem(STORE_KEY);
-      if(raw){const parsed=JSON.parse(raw);return {records:Array.isArray(parsed.records)?parsed.records:[],services:Array.isArray(parsed.services)?parsed.services:DEFAULT_SERVICES,profile:parsed.profile||{name:"",company:""},scriptUrl:parsed.scriptUrl||DEFAULT_SCRIPT_URL,apiToken:parsed.apiToken||"",syncRevision:Number.isInteger(parsed.syncRevision)?parsed.syncRevision:null,timer:parsed.timer||null,connected:Boolean(parsed.connected)};}
+      if(raw){const parsed=JSON.parse(raw);return {records:Array.isArray(parsed.records)?parsed.records:[],services:Array.isArray(parsed.services)?parsed.services:DEFAULT_SERVICES,profile:parsed.profile||{name:"",company:""},scriptUrl:(parsed.scriptUrl&&parsed.scriptUrl.startsWith("https://script.google.com/macros/s/")?DEFAULT_SCRIPT_URL:(parsed.scriptUrl||DEFAULT_SCRIPT_URL)),apiToken:parsed.apiToken||"",syncRevision:Number.isInteger(parsed.syncRevision)?parsed.syncRevision:null,timer:parsed.timer||null,connected:Boolean(parsed.connected)};}
     } catch(e){console.warn("No se pudieron leer los datos locales",e);}
     return {records:[],services:DEFAULT_SERVICES.map(x=>({...x})),profile:{name:"",company:""},scriptUrl:DEFAULT_SCRIPT_URL,apiToken:"",syncRevision:null,timer:null,connected:false};
   }
