@@ -124,19 +124,21 @@
     if(!response.ok)throw new Error(`Error de conexión (${response.status}).`);
     const data=await response.json();if(!data.ok){const error=new Error(data.error||"Apps Script ha devuelto un error.");error.code=data.code||"SERVER_ERROR";throw error;}return data;
   }
-  let syncTimeout=null;
-  function queueSync(){if(!state.connected||!state.scriptUrl)return;clearTimeout(syncTimeout);syncTimeout=setTimeout(()=>syncToCloud(false),900);}
+  let syncTimeout=null,syncInProgress=false;
+  function queueSync(){if(!state.connected||!state.scriptUrl)return;clearTimeout(syncTimeout);syncTimeout=setTimeout(()=>{if(syncInProgress){queueSync();return;}syncToCloud(false);},900);}
   async function syncToCloud(showMessage=true){
+    if(syncInProgress)return;
     if(!state.scriptUrl){if(showMessage)toast("Configura la URL de Apps Script primero.");return;}
-    const btn=$("#connectBtn");btn.disabled=true;btn.textContent="Sincronizando…";
+    syncInProgress=true;const btn=$("#connectBtn");btn.disabled=true;btn.textContent="Sincronizando…";
     try{
       const result=await api("sync",{data:{records:state.records,services:state.services,profile:state.profile,expectedRevision:Number.isInteger(state.syncRevision)?state.syncRevision:0}});
-      if(result.data){state.records=Array.isArray(result.data.records)?result.data.records:state.records;state.services=Array.isArray(result.data.services)?result.data.services:state.services;state.profile=result.data.profile||state.profile;state.syncRevision=Number.isInteger(result.data.revision)?result.data.revision:state.syncRevision;persist();}
+      if(result.data){state.syncRevision=Number.isInteger(result.data.revision)?result.data.revision:state.syncRevision;persist();}
       state.connected=true;persist();renderAll();if(showMessage)toast("Google Sheets sincronizado correctamente.");
     }catch(e){state.connected=false;persist();updateConnectionUI(false);if(showMessage)toast(e.code==="CONFLICT"?"Hay cambios más recientes en Sheets. Descarga los datos remotos antes de volver a sincronizar.":(e.message||"No se pudo conectar."));console.error(e);}
-    finally{btn.disabled=false;btn.textContent="Conectar y sincronizar";}
+    finally{syncInProgress=false;btn.disabled=false;btn.textContent="Conectar y sincronizar";}
   }
   async function pullFromCloud(){
+    if(syncInProgress){toast("Espera a que termine la sincronización actual.");return;}
     if(!state.scriptUrl||!state.apiToken){toast("Configura la URL y el token de seguridad primero.");return;}
     if(!confirm("Descargar desde Google Sheets reemplazará los datos locales de este dispositivo. Descarga antes una copia JSON si tienes cambios que quieras conservar. ¿Continuar?"))return;
     const btn=$("#pullBtn");btn.disabled=true;btn.textContent="Descargando…";
