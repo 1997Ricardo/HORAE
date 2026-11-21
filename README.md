@@ -29,7 +29,7 @@ El service worker requiere HTTPS (excepto `localhost`). La app guarda datos en e
 
 **Importante:** el repositorio actual no contiene el archivo `Code.gs` ni el código del backend de Apps Script. La interfaz incluye el cliente de sincronización, pero el backend debe existir y estar desplegado por separado.
 
-El cliente espera un endpoint de Apps Script que acepte una petición POST con el contrato `{ action: "sync", data: { records, services, profile } }` y devuelva JSON con `{ ok: true, data: { records, services, profile } }`. No despliegues una URL hasta verificar que el script implementa ese contrato y protege correctamente los datos.
+El cliente espera un endpoint de Apps Script que acepte una petición POST con el contrato `{ action: "sync", data: { records, services, profile } }` y devuelva JSON con `{ ok: true, data: { records, services, profile } }`. No despliegues una URL hasta verificar que el script implementa ese contrato y protege correctamente los datos. Como una URL de despliegue estuvo incluida en una versión anterior del repositorio, crea una implementación nueva y desactiva la antigua si continúa activa; borrar la URL del código actual no la elimina del historial Git.
 
 1. Configura y despliega tu proyecto de Apps Script por separado.
 2. Comprueba que la URL termina en `/exec` y que el endpoint implementa el contrato anterior.
