@@ -86,8 +86,9 @@
     else {const svc=state.services.find(x=>x.active!==false)||state.services[0];$("#recordService").value=svc?.id||"";$("#recordRate").value=svc?.rate??12;$("#recordFixedAmount").value=svc?.fixedAmount??150;$("#recordStart").value="19:00";$("#recordEnd").value="22:00";}
     updateRecordBillingFields();updateDurationPreview();$("#recordDialog").showModal();
   }
+  function selectedRecordIsFixed(){const serviceId=$("#recordService").value,record=state.records.find(x=>x.id===$("#recordId").value);return record&&record.serviceId===serviceId?isFixedRecord(record):serviceFor(serviceId).type==="fixed";}
   function updateRecordBillingFields(){
-    const svc=serviceFor($("#recordService").value),fixed=svc.type==="fixed";
+    const svc=serviceFor($("#recordService").value),fixed=selectedRecordIsFixed();
     $("#recordRateField").hidden=fixed;$("#recordFixedAmountField").hidden=!fixed;
     $("#recordStartField").hidden=fixed;$("#recordEndField").hidden=fixed;
     $("#recordRate").required=!fixed;$("#recordFixedAmount").required=fixed;
@@ -96,7 +97,7 @@
     if(!fixed&&(!$("#recordStart").value||!$("#recordEnd").value)){$("#recordStart").value="19:00";$("#recordEnd").value="22:00";}
   }
   function updateDurationPreview(){
-    const fixed=serviceFor($("#recordService").value).type==="fixed";
+    const fixed=selectedRecordIsFixed();
     if(fixed){$("#durationPreview").textContent="No computa horas";$("#amountPreview").textContent=fmtMoney(Number($("#recordFixedAmount").value)||0);return;}
     const mins=durationMinutes($("#recordStart").value,$("#recordEnd").value),rate=Number($("#recordRate").value)||0;
     $("#durationPreview").textContent=fmtHours(mins);$("#amountPreview").textContent=fmtMoney(mins/60*rate);
@@ -203,7 +204,7 @@
     $("#recordService").addEventListener("change",()=>{const s=serviceFor($("#recordService").value);$("#recordRate").value=s.rate||0;$("#recordFixedAmount").value=s.fixedAmount??150;updateRecordBillingFields();updateDurationPreview();});
     $("#recordFixedAmount").addEventListener("input",updateDurationPreview);
     $("#serviceType").addEventListener("change",updateServiceBillingFields);
-    $("#recordForm").addEventListener("submit",e=>{e.preventDefault();const id=$("#recordId").value,date=$("#recordDate").value,start=$("#recordStart").value,end=$("#recordEnd").value,serviceId=$("#recordService").value,svc=serviceFor(serviceId),fixed=svc.type==="fixed";
+    $("#recordForm").addEventListener("submit",e=>{e.preventDefault();const id=$("#recordId").value,date=$("#recordDate").value,start=$("#recordStart").value,end=$("#recordEnd").value,serviceId=$("#recordService").value,svc=serviceFor(serviceId),fixed=selectedRecordIsFixed();
       const rate= fixed ? 0 : Number($("#recordRate").value);
       const fixedAmount= fixed ? Number($("#recordFixedAmount").value) : 0;
       if(!date||!serviceId||(fixed?(!Number.isFinite(fixedAmount)||fixedAmount<0):(!start||!end||!Number.isFinite(rate)||rate<0))){$("#recordError").textContent="Revisa los campos obligatorios y el importe.";return;}
