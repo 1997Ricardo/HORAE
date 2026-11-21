@@ -26,14 +26,14 @@ La revisión cubrió la estructura del repositorio, la interfaz, el estado local
 - Se amplían las áreas táctiles, se adaptan formularios y diálogos al móvil y se respetan las áreas seguras del dispositivo.
 - Se añaden metadatos de instalación móvil y color de tema.
 - El service worker usa una estrategia network-first con fallback offline y solo elimina cachés antiguas propias de HORAE.
-- Se corrige la documentación de Google Sheets: el repositorio no contiene `Code.gs`.
+- Se corrige la documentación de Google Sheets: el repositorio no contiene `Code.gs`.\n- Se elimina la URL de despliegue de Apps Script del código fuente público; debe introducirse manualmente en Configuración.
 - Se elimina `.DS_Store` y se añade `.gitignore`.
 
 ## Hallazgos pendientes / límites actuales
 
 ### 1. Google Sheets y backend
 
-El repositorio contiene el cliente, pero no el código fuente del backend de Apps Script. Por tanto, no es posible auditar su autenticación, autorización, validación, almacenamiento, protección frente a escrituras concurrentes ni tratamiento de errores. La URL de Apps Script no es autenticación.
+El repositorio contiene el cliente, pero no el código fuente del backend de Apps Script. Por tanto, no es posible auditar su autenticación, autorización, validación, almacenamiento, protección frente a escrituras concurrentes ni tratamiento de errores. La URL de Apps Script no es autenticación. La URL que estuvo incluida en el código anterior ya pudo quedar expuesta en el historial público de Git; si ese despliegue sigue activo, conviene crear una nueva implementación segura y desactivar la anterior.
 
 La sincronización actual transmite un snapshot completo de registros, servicios y perfil. No implementa resolución de conflictos ni fusión segura de cambios simultáneos entre dispositivos. Antes de usarla como fuente principal de datos hay que revisar el Apps Script desplegado.
 
