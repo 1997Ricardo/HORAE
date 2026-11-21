@@ -25,18 +25,22 @@ El service worker requiere HTTPS (excepto `localhost`). La app guarda datos en e
 
 > **URL de Apps Script preconfigurada:** esta versión ya incluye la URL que has facilitado. En la app, abre Configuración y pulsa **Conectar y sincronizar**. Revisa y autoriza la operación cuando aparezca la confirmación.
 
-## B. Crear el backend de Google Sheets
-1. Crea un Google Sheet nuevo.
-2. Abre Extensiones → Apps Script.
-3. Pega el contenido de `Code.gs` y guarda.
-4. Ejecuta `setup()` una vez y concede permisos. Si abriste Apps Script desde tu Google Sheet nuevo (Extensiones → Apps Script), usará esa hoja y creará las pestañas `Jornadas`, `Servicios` y `Perfil`. Si el proyecto es independiente, creará una hoja `HORAE · Control horario`. La URL aparecerá en el registro de ejecución.
-5. Implementar → Nueva implementación → Aplicación web.
-6. Ejecutar como: tú. Elige el acceso más restrictivo que permita tu uso.
-7. Copia la URL que termina en `/exec`.
-8. En HORAE → Configuración, pega la URL y pulsa Conectar y sincronizar.
+## B. Sincronización con Google Sheets
+
+**Importante:** el repositorio actual no contiene el archivo `Code.gs` ni el código del backend de Apps Script. La interfaz incluye el cliente de sincronización, pero el backend debe existir y estar desplegado por separado.
+
+El cliente espera un endpoint de Apps Script que acepte una petición POST con el contrato `{ action: "sync", data: { records, services, profile } }` y devuelva JSON con `{ ok: true, data: { records, services, profile } }`. No despliegues una URL hasta verificar que el script implementa ese contrato y protege correctamente los datos.
+
+1. Configura y despliega tu proyecto de Apps Script por separado.
+2. Comprueba que la URL termina en `/exec` y que el endpoint implementa el contrato anterior.
+3. En HORAE → Configuración, pega la URL y pulsa **Conectar y sincronizar**.
+4. Antes de confirmar, descarga una copia JSON y verifica que la hoja de destino es la correcta.
 
 ### Sincronización y seguridad
-La app envía el conjunto de registros y servicios locales al backend y recibe el estado persistido. Antes de conectar por primera vez, descarga una copia JSON. No importará automáticamente registros de otras hojas. La URL de Apps Script no es un sistema de autenticación: no la publiques. Para varios usuarios o datos sensibles, añade autenticación y autorización antes de abrir el acceso.
+
+La sincronización transmite el conjunto de registros, servicios y perfil del dispositivo al backend. La sincronización inicial puede sustituir datos remotos dependiendo de la implementación de Apps Script. La app no ofrece todavía resolución de conflictos entre varios dispositivos ni autenticación propia para usuarios. Una URL de Apps Script no equivale a autenticación. No uses el endpoint con datos sensibles ni lo abras públicamente sin controles de identidad y autorización.
+
+La sincronización automática solo se ejecuta cuando la conexión se ha activado expresamente y se mantiene conectada. Al desconectar, se cancelan las sincronizaciones pendientes. El modo local sigue disponible.
 
 ## C. Generar PDF
 1. Entra en Informes o pulsa Exportar informe.
