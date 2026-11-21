@@ -23,20 +23,39 @@ Aplicación web instalable (PWA) para registrar jornadas, servicios, tarifas y g
 El service worker requiere HTTPS (excepto `localhost`). La app guarda datos en el navegador sin conexión, pero la sincronización con Sheets necesita internet.
 
 
-> **URL de Apps Script preconfigurada:** esta versión ya incluye la URL que has facilitado. En la app, abre Configuración y pulsa **Conectar y sincronizar**. Revisa y autoriza la operación cuando aparezca la confirmación.
+> **Endpoint preconfigurado:** HORAE incluye la URL de la implementación actual de Apps Script para facilitar la conexión. El token privado sigue introduciéndose manualmente en Configuración y nunca se incluye en el repositorio.
 
-## B. Crear el backend de Google Sheets
-1. Crea un Google Sheet nuevo.
-2. Abre Extensiones → Apps Script.
-3. Pega el contenido de `Code.gs` y guarda.
-4. Ejecuta `setup()` una vez y concede permisos. Si abriste Apps Script desde tu Google Sheet nuevo (Extensiones → Apps Script), usará esa hoja y creará las pestañas `Jornadas`, `Servicios` y `Perfil`. Si el proyecto es independiente, creará una hoja `HORAE · Control horario`. La URL aparecerá en el registro de ejecución.
-5. Implementar → Nueva implementación → Aplicación web.
-6. Ejecutar como: tú. Elige el acceso más restrictivo que permita tu uso.
-7. Copia la URL que termina en `/exec`.
-8. En HORAE → Configuración, pega la URL y pulsa Conectar y sincronizar.
+```text
+https://script.google.com/macros/s/AKfycbzrs-gDOXqePw-y0if3YA0sMMzIpEkbWoxzmz-NFZcJyrcZGAY3DFJrQZJR9Rc2YoNg/exec
+```
 
-### Sincronización y seguridad
-La app envía el conjunto de registros y servicios locales al backend y recibe el estado persistido. Antes de conectar por primera vez, descarga una copia JSON. No importará automáticamente registros de otras hojas. La URL de Apps Script no es un sistema de autenticación: no la publiques. Para varios usuarios o datos sensibles, añade autenticación y autorización antes de abrir el acceso.
+## B. Sincronización segura con Google Sheets
+
+El repositorio incluye `Code.gs`, el backend de Google Apps Script. El endpoint utiliza un token compartido y control de revisiones para impedir que una sincronización antigua sobrescriba silenciosamente datos más recientes.
+
+### Configuración inicial
+
+1. Abre la hoja de cálculo de HORAE y entra en **Extensiones → Apps Script**.
+2. Sustituye el código del proyecto por el contenido actual de `Code.gs`.
+3. Ejecuta `setup()` una vez y concede los permisos solicitados.
+4. Ejecuta `generateApiToken()` y copia el token que aparece en el registro de ejecución. No lo compartas.
+5. En **Implementar → Nueva implementación → Aplicación web**, configura la ejecución como tú y el acceso que permita tu organización. El endpoint puede ser accesible por URL, pero las operaciones requieren el token.
+6. Copia la URL terminada en `/exec`.
+7. En HORAE → Configuración, introduce la URL y el token y pulsa **Conectar y sincronizar**.
+
+### Conectar otro dispositivo
+
+Introduce la misma URL y el mismo token en el segundo dispositivo. Si la hoja ya tiene datos, utiliza primero **Descargar desde Sheets** para obtener la revisión remota antes de realizar cambios.
+
+### Seguridad y recuperación
+
+- El token se guarda en el almacenamiento local del navegador y no se incluye en las copias JSON exportadas.
+- Para rotar el token, ejecuta otra vez `generateApiToken()` y actualízalo en todos los dispositivos.
+- La API valida el tamaño de las peticiones, los campos, los identificadores y los valores numéricos.
+- El backend neutraliza textos que podrían interpretarse como fórmulas de Sheets.
+- Cada sincronización envía una revisión esperada. Si otro dispositivo ya ha sincronizado, el backend rechaza la revisión antigua. Descarga primero la versión remota y conserva una copia local antes de sustituir datos.
+- La sincronización sigue siendo de tipo snapshot: no fusiona automáticamente cambios simultáneos ni sincroniza eliminaciones como operaciones individuales.
+- El token es un secreto compartido, no una identidad individual. Un dispositivo comprometido o una persona con el token puede acceder a los datos. No lo uses como sistema de autenticación empresarial o multiusuario.
 
 ## C. Generar PDF
 1. Entra en Informes o pulsa Exportar informe.
