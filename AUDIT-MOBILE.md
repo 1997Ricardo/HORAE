@@ -44,7 +44,7 @@ Los datos se guardan en localStorage. Es sencillo y gratuito, pero no ofrece sin
 
 ### 3. Calidad y pruebas
 
-No hay suite automatizada, pipeline CI, linting ni pruebas de regresión en el repositorio. Los cambios de esta rama requieren validación manual en Safari iOS, Chrome Android y escritorio, incluyendo instalación, actualización, modo avión, cronómetro, edición, exportación y restauración.
+El repositorio todavía no tiene una suite de pruebas funcionales ni linting. Esta rama añade un pipeline CI básico para comprobar sintaxis JavaScript, JSON del manifest y presencia de recursos PWA, pero no sustituye las pruebas de regresión. Sigue siendo necesaria la validación manual en Safari iOS, Chrome Android y escritorio, incluyendo instalación, actualización, modo avión, cronómetro, edición, exportación y restauración.
 
 ### 4. Privacidad y seguridad
 
