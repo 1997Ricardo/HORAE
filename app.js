@@ -24,7 +24,7 @@
   function loadState(){
     try {
       const raw=localStorage.getItem(STORE_KEY);
-      if(raw){const parsed=JSON.parse(raw);return {records:Array.isArray(parsed.records)?parsed.records:[],services:Array.isArray(parsed.services)&&parsed.services.length?parsed.services:DEFAULT_SERVICES,profile:parsed.profile||{name:"",company:""},scriptUrl:parsed.scriptUrl||DEFAULT_SCRIPT_URL,timer:parsed.timer||null,connected:Boolean(parsed.connected)};}
+      if(raw){const parsed=JSON.parse(raw);return {records:Array.isArray(parsed.records)?parsed.records:[],services:Array.isArray(parsed.services)?parsed.services:DEFAULT_SERVICES,profile:parsed.profile||{name:"",company:""},scriptUrl:parsed.scriptUrl||DEFAULT_SCRIPT_URL,timer:parsed.timer||null,connected:Boolean(parsed.connected)};}
     } catch(e){console.warn("No se pudieron leer los datos locales",e);}
     return {records:[],services:DEFAULT_SERVICES.map(x=>({...x})),profile:{name:"",company:""},scriptUrl:DEFAULT_SCRIPT_URL,timer:null,connected:false};
   }
@@ -172,7 +172,7 @@
   }
   function stopTimer(){
     if(!state.timer)return;
-    const timer=state.timer, endDate=new Date();
+    const timer=state.timer;
     const elapsed=Math.max(1,Math.round((endDate.getTime()-Number(timer.startedAt))/60000));
     if(elapsed>24*60){toast("La jornada supera 24 horas. Revisa el registro manualmente.");return;}
     const startMinutes=Number(timer.start.slice(0,2))*60+Number(timer.start.slice(3,5));
@@ -219,13 +219,13 @@
     $("#exportMonth").addEventListener("click",()=>{setView("reports");$("#reportMonth").value=activeMonth;showReport();});$("#generateReport").addEventListener("click",showReport);
     $("#saveProfile").addEventListener("click",()=>{state.profile={name:$("#settingsName").value.trim(),company:$("#settingsCompany").value.trim()};persist();$("#reportName").value=state.profile.name;$("#reportBoss").value=state.profile.company;queueSync();toast("Perfil guardado");});
     $("#connectBtn").addEventListener("click",async()=>{state.scriptUrl=$("#scriptUrl").value.trim();persist();if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(state.scriptUrl)){toast("Pega una URL válida de una aplicación web de Apps Script.");return;}if(!confirm("Vas a iniciar una sincronización desde este dispositivo. Descarga antes una copia de seguridad y comprueba que la hoja de destino es la correcta. La sincronización puede sustituir datos remotos según la configuración del Apps Script. ¿Continuar?"))return;await syncToCloud(true);});
-    $("#disconnectBtn").addEventListener("click",()=>{state.connected=false;persist();updateConnectionUI(false);toast("Sincronización pausada. Tus datos locales siguen guardados.");});
+    $("#disconnectBtn").addEventListener("click",()=>{clearTimeout(syncTimeout);state.connected=false;persist();updateConnectionUI(false);toast("Sincronización pausada. Tus datos locales siguen guardados.");});
     $("#backupBtn").addEventListener("click",exportJSON);
     $("#restoreInput").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.records)||!Array.isArray(data.services))throw new Error("Formato no válido");if(!confirm("Importar la copia reemplazará los registros, servicios y perfil locales actuales. ¿Continuar?"))return;state.records=data.records;state.services=data.services;state.profile=data.profile||{name:"",company:""};state.timer=data.timer||null;persist();renderAll();queueSync();toast("Copia importada correctamente");}catch(err){toast("No se ha podido importar la copia JSON.");}finally{e.target.value="";}});
     $("#clearLocalBtn").addEventListener("click",()=>{if(!confirm("Esto eliminará los datos guardados en este dispositivo. ¿Has descargado una copia de seguridad?"))return;localStorage.removeItem(STORE_KEY);state={records:[],services:DEFAULT_SERVICES.map(x=>({...x})),profile:{name:"",company:""},scriptUrl:"",connected:false};persist();renderAll();toast("Datos locales eliminados");});
     $("#installBtn").addEventListener("click",async()=>{if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;$("#installBtn").hidden=true;});
     window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstallPrompt=e;$("#installBtn").hidden=false;});
-    window.addEventListener("online",()=>{if(state.scriptUrl)syncToCloud(false);});window.addEventListener("offline",()=>toast("Sin conexión. Los datos locales siguen disponibles."));
+    window.addEventListener("online",()=>{if(state.connected&&state.scriptUrl)syncToCloud(false);});window.addEventListener("offline",()=>toast("Sin conexión. Los datos locales siguen disponibles."));
   }
   bind();renderAll();
   if("serviceWorker" in navigator && location.protocol.startsWith("http"))navigator.serviceWorker.register("./sw.js").catch(e=>console.warn("Service worker no disponible",e));
