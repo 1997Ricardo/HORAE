@@ -25,22 +25,33 @@ El service worker requiere HTTPS (excepto `localhost`). La app guarda datos en e
 
 > **Endpoint no preconfigurado:** por seguridad, la URL de Apps Script se introduce manualmente en Configuración después de comprobar el backend. No se incluye una URL de despliegue en el código público.
 
-## B. Sincronización con Google Sheets
+## B. Sincronización segura con Google Sheets
 
-**Importante:** el repositorio actual no contiene el archivo `Code.gs` ni el código del backend de Apps Script. La interfaz incluye el cliente de sincronización, pero el backend debe existir y estar desplegado por separado.
+El repositorio incluye `Code.gs`, el backend de Google Apps Script. El endpoint utiliza un token compartido y control de revisiones para impedir que una sincronización antigua sobrescriba silenciosamente datos más recientes.
 
-El cliente espera un endpoint de Apps Script que acepte una petición POST con el contrato `{ action: "sync", data: { records, services, profile } }` y devuelva JSON con `{ ok: true, data: { records, services, profile } }`. No despliegues una URL hasta verificar que el script implementa ese contrato y protege correctamente los datos. Como una URL de despliegue estuvo incluida en una versión anterior del repositorio, crea una implementación nueva y desactiva la antigua si continúa activa; borrar la URL del código actual no la elimina del historial Git.
+### Configuración inicial
 
-1. Configura y despliega tu proyecto de Apps Script por separado.
-2. Comprueba que la URL termina en `/exec` y que el endpoint implementa el contrato anterior.
-3. En HORAE → Configuración, pega la URL y pulsa **Conectar y sincronizar**.
-4. Antes de confirmar, descarga una copia JSON y verifica que la hoja de destino es la correcta.
+1. Abre la hoja de cálculo de HORAE y entra en **Extensiones → Apps Script**.
+2. Sustituye el código del proyecto por el contenido actual de `Code.gs`.
+3. Ejecuta `setup()` una vez y concede los permisos solicitados.
+4. Ejecuta `generateApiToken()` y copia el token que aparece en el registro de ejecución. No lo compartas.
+5. En **Implementar → Nueva implementación → Aplicación web**, configura la ejecución como tú y el acceso que permita tu organización. El endpoint puede ser accesible por URL, pero las operaciones requieren el token.
+6. Copia la URL terminada en `/exec`.
+7. En HORAE → Configuración, introduce la URL y el token y pulsa **Conectar y sincronizar**.
 
-### Sincronización y seguridad
+### Conectar otro dispositivo
 
-La sincronización transmite el conjunto de registros, servicios y perfil del dispositivo al backend. La sincronización inicial puede sustituir datos remotos dependiendo de la implementación de Apps Script. La app no ofrece todavía resolución de conflictos entre varios dispositivos ni autenticación propia para usuarios. Una URL de Apps Script no equivale a autenticación. No uses el endpoint con datos sensibles ni lo abras públicamente sin controles de identidad y autorización.
+Introduce la misma URL y el mismo token en el segundo dispositivo. Si la hoja ya tiene datos, utiliza primero **Descargar desde Sheets** para obtener la revisión remota antes de realizar cambios.
 
-La sincronización automática solo se ejecuta cuando la conexión se ha activado expresamente y se mantiene conectada. Al desconectar, se cancelan las sincronizaciones pendientes. El modo local sigue disponible.
+### Seguridad y recuperación
+
+- El token se guarda en el almacenamiento local del navegador y no se incluye en las copias JSON exportadas.
+- Para rotar el token, ejecuta otra vez `generateApiToken()` y actualízalo en todos los dispositivos.
+- La API valida el tamaño de las peticiones, los campos, los identificadores y los valores numéricos.
+- El backend neutraliza textos que podrían interpretarse como fórmulas de Sheets.
+- Cada sincronización envía una revisión esperada. Si otro dispositivo ya ha sincronizado, el backend rechaza la revisión antigua. Descarga primero la versión remota y conserva una copia local antes de sustituir datos.
+- La sincronización sigue siendo de tipo snapshot: no fusiona automáticamente cambios simultáneos ni sincroniza eliminaciones como operaciones individuales.
+- El token es un secreto compartido, no una identidad individual. Un dispositivo comprometido o una persona con el token puede acceder a los datos. No lo uses como sistema de autenticación empresarial o multiusuario.
 
 ## C. Generar PDF
 1. Entra en Informes o pulsa Exportar informe.
